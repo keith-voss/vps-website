@@ -1,73 +1,91 @@
-# Welcome to your Lovable project
+# Voss Property Solutions
 
-## Project info
+A modern, responsive website for **Voss Property Solutions**, a leading pavement marking and warehouse safety company in the Mid-Atlantic region.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Project Overview
 
-## How can I edit this code?
+This website serves as the digital storefront for Voss Property Solutions, showcasing their services in industrial pavement marking, warehouse safety solutions, and regulatory compliance (ADA).
 
-There are several ways of editing your application.
+**Key Features:**
+*   **Service Showcases**: Detailed pages for exterior and interior services.
+*   **Blog & Case Studies**: A content-rich blog with "Before vs. After" transformations.
+*   **Interactive Locations**: Visual maps covering Baltimore and surrounding counties.
+*   **Request Estimate**: Integrated modal and calls-to-action for lead generation.
+*   **Responsive Design**: Fully optimized for mobile, tablet, and desktop devices.
 
-**Use Lovable**
+## 🛠️ Technology Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+This project is built with a modern frontend stack focusing on performance and developer experience:
 
-Changes made via Lovable will be committed automatically to this repo.
+-   **Framework**: [React](https://react.dev/) + [Vite](https://vitejs.dev/)
+-   **Language**: [TypeScript](https://www.typescriptlang.org/)
+-   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+-   **UI Components**: [Shadcn UI](https://ui.shadcn.com/) (Radix UI + Tailwind)
+-   **Animations**: [Framer Motion](https://www.framer.com/motion/)
+-   **Icons**: [Lucide React](https://lucide.dev/)
+-   **Meta Tags**: [React Helmet Async](https://github.com/staylor/react-helmet-async)
 
-**Use your preferred IDE**
+## 💻 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Follow these steps to set up the project locally on your machine.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
+-   [Node.js](https://nodejs.org/) (Version 18+ recommended)
+-   A package manager like `npm` (comes with Node.js)
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/vosspropertysolutions.git
+    cd vosspropertysolutions
+    ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3.  **Start the development server:**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:8080](http://localhost:8080) to view it in your browser.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+## 📜 Available Scripts
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Starts the development server with HMR. |
+| `npm run build` | Builds the app for production to the `dist` folder. |
+| `npm run lint` | Runs ESLint to check for code quality issues. |
+| `npm run preview` | Locally questions the production build. |
+
+## 📂 Project Structure
+
+```
+src/
+├── assets/         # Images, logos, and static files
+├── components/     # Reusable UI components (Header, Footer, Shadcn UI)
+├── data/           # Static data files (Blog posts, locations)
+├── pages/          # Main application views (Home, Services, Blog)
+├── lib/            # Utility functions (Tailwind merge, etc.)
+└── App.tsx         # Main application root and routing
 ```
 
-**Edit a file directly in GitHub**
+## 🚀 Deployment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The site is configured for easy deployment on **Vercel** or **Netlify**.
 
-**Use GitHub Codespaces**
+### Deploying to Vercel (Recommended)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1.  Push your code to a GitHub repository.
+2.  Import the project into Vercel.
+3.  Vercel will detect Vite and deploy automatically.
+4.  Updates are live immediately after pushing to `main`.
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+For manual updates via CLI:
+```bash
+npm i -g vercel
+vercel --prod
+```
