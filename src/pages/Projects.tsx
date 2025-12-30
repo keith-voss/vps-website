@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import ContactSection from "@/components/ContactSection";
 import EstimateModal from "@/components/EstimateModal";
 import StickyCta from "@/components/StickyCta";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -66,13 +66,22 @@ const Projects = () => {
     const initialCategory = searchParams.get("category") || "All";
     const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [selectedProject, setSelectedProject] = useState<{ id: number; image: string; title: string; category: string; location: string } | null>(null);
+    const projectsTopRef = useRef<HTMLDivElement>(null);
 
     // Sync state with URL params
     useEffect(() => {
         const cat = searchParams.get("category") || "All";
         setSelectedCategory(cat);
-        // Scroll to top when category changes
-        window.scrollTo(0, 0);
+
+        // Scroll logic
+        if (cat !== "All" && projectsTopRef.current) {
+            // Slight delay to ensure layout is ready and override any scroll-to-top behavior
+            setTimeout(() => {
+                projectsTopRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+        } else {
+            window.scrollTo(0, 0);
+        }
     }, [searchParams]);
 
     const handleCategoryChange = (cat: string) => {
@@ -118,7 +127,7 @@ const Projects = () => {
                         image={heroGalleryImage}
                     />
 
-                    <div className="container mx-auto px-4 py-16">
+                    <div ref={projectsTopRef} className="container mx-auto px-4 py-16">
                         <div className="flex flex-col md:flex-row gap-12">
                             {/* Sidebar Categories */}
                             <aside className="w-full md:w-72 flex-shrink-0">
