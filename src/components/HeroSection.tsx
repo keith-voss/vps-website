@@ -94,7 +94,7 @@ const HeroSection = ({ onOpenEstimate }: HeroSectionProps) => {
                 <Button
                   variant="outline"
                   size="xl"
-                  onClick={onOpenEstimate}
+                  onClick={() => window.location.href = 'tel:+14439701440'}
                   className="w-full sm:w-auto text-white border-white bg-transparent hover:bg-white hover:text-industrial-black transition-colors px-10 py-7 text-lg "
                 >
                   <Phone className="w-5 h-5 mr-2" />
