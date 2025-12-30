@@ -1,11 +1,12 @@
 import { BlogPost } from "../blogPosts";
+import blogImage from "@/assets/blog-hospital-helipad.jpg";
 
 export const hospitalCampusPost: BlogPost = {
   id: "hospital-campus-24-7-operations",
   title: "Safety Never Sleeps: How We Refreshed a Major 24/7 Hospital Campus Without Interrupting Patient Care",
   category: "Healthcare",
   date: "December 29, 2024",
-  image: "/src/assets/blog-hospital-helipad.jpg",
+  image: blogImage,
   excerpt: "A comprehensive pavement marking overhaul for a 24/7 hospital campus, including helicopter landing pads, ER access, and ADA compliance—all without disrupting critical patient care operations.",
   projectDetails: {
     location: "Major Hospital Campus",

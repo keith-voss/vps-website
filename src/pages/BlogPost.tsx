@@ -11,6 +11,8 @@ import { useParams, Navigate, Link } from "react-router-dom";
 import { blogPosts } from "@/data/blogPosts";
 import { ArrowLeft } from "lucide-react";
 
+import PageHero from "@/components/PageHero";
+
 const BlogPost = () => {
     const [isEstimateOpen, setIsEstimateOpen] = useState(false);
     const { id } = useParams();
@@ -30,8 +32,13 @@ const BlogPost = () => {
             <div className="min-h-screen bg-white font-sans text-gray-900">
                 <Header onOpenEstimate={() => setIsEstimateOpen(true)} />
 
-                <main className="pt-32 pb-24">
-                    <article className="max-w-4xl mx-auto px-6">
+                <main className="pb-24">
+                    <PageHero
+                        title={post.title}
+                        image={post.image}
+                    />
+
+                    <article className="max-w-4xl mx-auto px-6 mt-12">
                         {/* Back Link */}
                         <div className="mb-8">
                             <Link to="/blog" className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-primary transition-colors">
@@ -40,15 +47,12 @@ const BlogPost = () => {
                             </Link>
                         </div>
 
-                        {/* Article Header */}
-                        <header className="mb-12">
-                            <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-6 text-gray-900">
-                                {post.title}
-                            </h1>
+                        {/* Article Intro/Excerpt */}
+                        <div className="mb-12">
                             <p className="text-lg text-gray-600 leading-relaxed italic border-l-4 border-primary pl-4">
                                 {post.excerpt}
                             </p>
-                        </header>
+                        </div>
 
                         {/* Main Content Part 1 */}
                         <div

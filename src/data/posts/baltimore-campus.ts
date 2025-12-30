@@ -1,11 +1,12 @@
 import { BlogPost } from "../blogPosts";
+import blogImage from "@/assets/blog-baltimore-campus.png";
 
 export const baltimoreCampusPost: BlogPost = {
   id: "baltimore-campus-transformation",
   title: "From Main Street to Multi-Level Garages: How Comprehensive Pavement Marking Revitalized a Major Owings Mills Campus",
   category: "Case Studies",
   date: "December 29, 2024",
-  image: "/src/assets/blog-baltimore-campus.png",
+  image: blogImage,
   excerpt: "A multi-year transformation of a high-traffic Owings Mills campus featuring Main Street thoroughfares, hotel valet zones, and multi-level parking structures.",
   projectDetails: {
     location: "Owings Mills, MD",

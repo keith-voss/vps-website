@@ -1,11 +1,12 @@
 import { BlogPost } from "../blogPosts";
+import blogImage from "@/assets/blog-warehouse-walkways.jpg";
 
 export const warehouseSafetyPost: BlogPost = {
   id: "warehouse-safety-walkways-liability",
   title: "The Safety Dividend: How Designated Walkways Reduce Liability and Protect Workers in High-Volume Distribution Centers",
   category: "Warehouse Safety",
   date: "December 29, 2024",
-  image: "/src/assets/blog-warehouse-walkways.jpg",
+  image: blogImage,
   excerpt: "Learn how a leading logistics provider reduced liability and protected workers by implementing industry-standard 4-foot pedestrian walkways with high-visibility yellow coatings and hazard intersection markings.",
   projectDetails: {
     location: "Regional Distribution Center",

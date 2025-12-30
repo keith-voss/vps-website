@@ -55,8 +55,6 @@ const Blog = () => {
                                                 <div className="flex items-center gap-3 text-sm text-gray-500 mb-4">
                                                     <User className="w-4 h-4" />
                                                     <span className="font-medium">Keith Voss</span>
-                                                    <span className="text-gray-300">•</span>
-                                                    <span>5 min read</span>
                                                 </div>
 
                                                 <h2 className="text-2xl font-heading font-bold text-industrial-black mb-4 line-clamp-2 group-hover:text-primary transition-colors duration-300">
