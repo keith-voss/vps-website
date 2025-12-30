@@ -26,7 +26,7 @@ const Header = ({ onOpenEstimate }: HeaderProps) => {
         <div className="relative flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src="/src/assets/logo.png" alt="Voss Property Solutions" className="h-[63px] w-auto object-contain" />
+            <img src={logo} alt="Voss Property Solutions" className="h-[63px] w-auto object-contain" />
           </Link>
 
           {/* Desktop Navigation */}
