@@ -33,12 +33,12 @@ const ContactSection = ({ onOpenEstimate }: ContactSectionProps) => {
               className="bg-industrial-black text-white font-bold text-lg px-8 py-6 rounded-md shadow-lg hover:bg-white hover:text-industrial-black transition-all border-2 border-transparent hover:border-industrial-black"
             >
               Free Estimate
-            </Button>
-          </motion.div>
+            </Button >
+          </motion.div >
 
-        </div>
-      </div>
-    </section>
+        </div >
+      </div >
+    </section >
   );
 };
 
