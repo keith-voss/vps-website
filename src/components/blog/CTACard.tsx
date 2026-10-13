@@ -11,7 +11,7 @@ const CTACard = ({
     title,
     description,
     buttonText = "Get a Free Safety Assessment",
-    buttonLink = "https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new"
+    buttonLink = "/"
 }: CTACardProps) => {
     return (
         <div className="my-16">

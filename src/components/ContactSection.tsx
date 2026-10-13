@@ -29,7 +29,7 @@ const ContactSection = ({ onOpenEstimate }: ContactSectionProps) => {
           >
             <Button
               size="lg"
-              onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')}
+              onClick={onOpenEstimate}
               className="bg-industrial-black text-white font-bold text-lg px-8 py-6 rounded-md shadow-lg hover:bg-white hover:text-industrial-black transition-all border-2 border-transparent hover:border-industrial-black"
             >
               Free Estimate

@@ -57,7 +57,7 @@ const Index = () => {
       <main className="overflow-hidden">
         <Header onOpenEstimate={() => setIsEstimateOpen(true)} />
         <HeroSection onOpenEstimate={() => setIsEstimateOpen(true)} />
-        <ServicesSection />
+        <ServicesSection onOpenEstimate={() => setIsEstimateOpen(true)} />
         <OwnerSection />
         <PortfolioSection />
         {/* <TestimonialsSection /> */}

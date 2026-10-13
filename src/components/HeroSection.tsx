@@ -86,7 +86,7 @@ const HeroSection = ({ onOpenEstimate }: HeroSectionProps) => {
                 <Button
                   variant="cta"
                   size="xl"
-                  onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')}
+                  onClick={onOpenEstimate}
                   className="w-full sm:w-auto shadow-glow px-10 py-7 text-lg uppercase tracking-wide"
                 >
                   Get a Free Estimate
