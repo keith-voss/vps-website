@@ -6,9 +6,10 @@ interface PageHeroProps {
     description?: string;
     image: string;
     showCta?: boolean;
+    onOpenEstimate?: () => void;
 }
 
-const PageHero = ({ title, description, image, showCta = false }: PageHeroProps) => {
+const PageHero = ({ title, description, image, showCta = false, onOpenEstimate }: PageHeroProps) => {
     return (
         <div className="relative h-[400px] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
@@ -42,7 +43,7 @@ const PageHero = ({ title, description, image, showCta = false }: PageHeroProps)
                         <Button
                             variant="cta"
                             size="lg"
-                            onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')}
+                            onClick={onOpenEstimate}
                             className="text-lg px-8 py-6 shadow-glow"
                         >
                             Get a Free Estimate

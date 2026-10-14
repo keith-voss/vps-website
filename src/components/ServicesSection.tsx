@@ -56,7 +56,11 @@ const services = [
   },
 ];
 
-const ServicesSection = () => {
+interface ServicesSectionProps {
+  onOpenEstimate: () => void;
+}
+
+const ServicesSection = ({ onOpenEstimate }: ServicesSectionProps) => {
   return (
     <section id="services" className="py-20 md:py-32 bg-background">
       <div className="container mx-auto px-4">
@@ -106,12 +110,13 @@ const ServicesSection = () => {
                   >
                     View Projects <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/link:translate-x-1" />
                   </div>
-                  <div
-                    onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')}
-                    className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors cursor-pointer group/link"
+                  <button
+                    type="button"
+                    onClick={onOpenEstimate}
+                    className="inline-flex items-center text-left text-primary font-semibold hover:text-primary/80 transition-colors cursor-pointer group/link"
                   >
                     Get Started <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/link:translate-x-1" />
-                  </div>
+                  </button>
                 </div>
               </div>
             </motion.div>

@@ -18,7 +18,7 @@ const StickyCta = ({ onOpenEstimate }: StickyCtaProps) => {
         <Button
           variant="cta"
           size="lg"
-          onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')}
+          onClick={onOpenEstimate}
           className="w-full shadow-lg"
         >
           Free Estimate

@@ -83,7 +83,7 @@ const Header = ({ onOpenEstimate }: HeaderProps) => {
             <Button
               variant="cta"
               size="lg"
-              onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')}
+              onClick={onOpenEstimate}
               className="hidden sm:flex"
             >
               Free Estimate
@@ -135,7 +135,7 @@ const Header = ({ onOpenEstimate }: HeaderProps) => {
               <a href="mailto:keith@vosspropertysolutions.com" className="text-left py-2 font-medium hover:text-primary transition-colors">
                 Contact
               </a>
-              <Button variant="cta" size="lg" onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')} className="w-full mt-2">
+              <Button variant="cta" size="lg" onClick={onOpenEstimate} className="w-full mt-2">
                 Free Estimate
               </Button>
             </nav>

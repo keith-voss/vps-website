@@ -106,12 +106,13 @@ const Services = () => {
                                             >
                                                 View Projects <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/link:translate-x-1" />
                                             </div>
-                                            <div
-                                                onClick={() => window.open('https://clienthub.getjobber.com/hubs/1674cd73-8232-415c-834e-837c9dc881a9/public/requests/2123840/new', '_blank')}
-                                                className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors cursor-pointer group/link"
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsEstimateOpen(true)}
+                                                className="inline-flex items-center text-left text-primary font-semibold hover:text-primary/80 transition-colors cursor-pointer group/link"
                                             >
                                                 Get Started <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/link:translate-x-1" />
-                                            </div>
+                                            </button>
                                         </div>
                                     </CardContent>
                                 </Card>
