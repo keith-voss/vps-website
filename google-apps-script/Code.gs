@@ -1,7 +1,6 @@
 const DEFAULT_SPREADSHEET_ID = "1fKcPMTqLMdT6iuPp9hTpZ_KQUQgxq03vFGryemMV4-M";
 const DEFAULT_SHEET_NAME = "Sheet1";
 const DEFAULT_NOTIFY_EMAILS = "keith@vosspropertysolutions.com";
-const DEFAULT_TURNSTILE_HOSTNAMES = "vosspropertysolutions.com,www.vosspropertysolutions.com";
 
 const HEADERS = [
   "Full Name",
@@ -67,7 +66,6 @@ function doPost(event) {
       return jsonResponse_({ ok: true });
     }
 
-    verifyTurnstile_(properties, payload.turnstileToken);
     const lead = normalizeLead_(rawLead);
     validateLead_(lead);
 
@@ -214,35 +212,6 @@ function findLeadRow_(sheet, leadId) {
     .matchEntireCell(true)
     .findNext();
   return match ? match.getRow() : 0;
-}
-
-function verifyTurnstile_(properties, token) {
-  const secret = properties.getProperty("TURNSTILE_SECRET_KEY");
-  const expectedHostnames = String(properties.getProperty("TURNSTILE_HOSTNAMES") || DEFAULT_TURNSTILE_HOSTNAMES)
-    .split(",")
-    .map(function (hostname) { return hostname.trim().toLowerCase(); })
-    .filter(String);
-  if (!secret || expectedHostnames.length === 0 || !token) {
-    throw new Error("Turnstile is not fully configured or the token is missing.");
-  }
-
-  const response = UrlFetchApp.fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "post",
-    payload: {
-      secret: secret,
-      response: String(token),
-    },
-    muteHttpExceptions: true,
-  });
-  const result = JSON.parse(response.getContentText() || "{}");
-  if (
-    response.getResponseCode() !== 200 ||
-    result.success !== true ||
-    result.action !== "estimate_request" ||
-    expectedHostnames.indexOf(String(result.hostname || "").toLowerCase()) === -1
-  ) {
-    throw new Error("Turnstile verification failed.");
-  }
 }
 
 function normalizeLead_(rawLead) {

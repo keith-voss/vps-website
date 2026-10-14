@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Loader2, Phone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import TurnstileWidget from "@/components/TurnstileWidget";
 
 interface EstimateModalProps {
   open: boolean;
@@ -110,12 +109,6 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [leadId, setLeadId] = useState("");
   const [submissionId, setSubmissionId] = useState(() => crypto.randomUUID());
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
-
-  const handleTurnstileToken = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
 
   useEffect(() => {
     if (open) {
@@ -123,8 +116,6 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
       setErrorMessage("");
       setLeadId("");
       setSubmissionId(crypto.randomUUID());
-      setTurnstileToken("");
-      setTurnstileResetKey((key) => key + 1);
     } else {
       submissionRef.current += 1;
       abortRef.current?.abort();
@@ -177,7 +168,7 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
       await fetch(scriptUrl, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ lead, turnstileToken }),
+        body: JSON.stringify({ lead }),
         mode: "no-cors",
         signal: controller.signal,
       });
@@ -191,8 +182,6 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
     } catch (error) {
       if (submissionRef.current !== submissionAttempt || controller.signal.aborted) return;
       setSubmissionState("error");
-      setTurnstileToken("");
-      setTurnstileResetKey((key) => key + 1);
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -348,8 +337,6 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
                 <span>I agree that Voss Property Solutions may contact me by phone, text, or email about this estimate request. *</span>
               </label>
 
-              <TurnstileWidget onTokenChange={handleTurnstileToken} resetKey={turnstileResetKey} />
-
               {submissionState === "error" && (
                 <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">
                   {errorMessage} If the problem continues, call <a className="font-semibold underline" href="tel:+14439701440">443-970-1440</a>.
@@ -361,7 +348,7 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
                   <Phone className="h-4 w-4" aria-hidden="true" />
                   Prefer to call? 443-970-1440
                 </a>
-                <Button type="submit" variant="cta" size="lg" disabled={submissionState === "submitting" || !turnstileToken}>
+                <Button type="submit" variant="cta" size="lg" disabled={submissionState === "submitting"}>
                   {submissionState === "submitting" && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
                   {submissionState === "submitting" ? "Submitting…" : "Request Free Estimate"}
                 </Button>
