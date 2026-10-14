@@ -14,12 +14,9 @@ Under the Google account that owns or can edit the Sheet:
 1. Open **Extensions → Apps Script**.
 2. Replace the editor contents with `google-apps-script/Code.gs`.
 3. Open **Project Settings → Script properties** and create:
-   - `SPREADSHEET_ID`: `1fKcPMTqLMdT6iuPp9hTpZ_KQUQgxq03vFGryemMV4-M`
-   - `SHEET_NAME`: `Sheet1`
-   - `NOTIFY_EMAILS`: comma-separated notification recipients.
    - `TURNSTILE_SECRET_KEY`: the Cloudflare Turnstile server-side secret.
-   - `TURNSTILE_HOSTNAMES`: comma-separated approved hostnames, for example `vosspropertysolutions.com,www.vosspropertysolutions.com`.
-4. Run `setupLeadSheet` once and authorize Google Sheets, external-request and email access.
+4. Optional overrides are available for `SPREADSHEET_ID`, `SHEET_NAME`, `NOTIFY_EMAILS`, and `TURNSTILE_HOSTNAMES`. The prepared script already defaults to the supplied Sheet, `Sheet1`, `keith@vosspropertysolutions.com`, and the Voss production hostnames.
+5. Run `setupLeadSheet` once and authorize Google Sheets, external-request and email access.
 
 `setupLeadSheet` preserves the Sheet's seven existing lead columns, adds the operational/tracking columns, formats the header, and installs a 15-minute notification retry trigger.
 

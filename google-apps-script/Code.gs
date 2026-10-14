@@ -1,3 +1,8 @@
+const DEFAULT_SPREADSHEET_ID = "1fKcPMTqLMdT6iuPp9hTpZ_KQUQgxq03vFGryemMV4-M";
+const DEFAULT_SHEET_NAME = "Sheet1";
+const DEFAULT_NOTIFY_EMAILS = "keith@vosspropertysolutions.com";
+const DEFAULT_TURNSTILE_HOSTNAMES = "vosspropertysolutions.com,www.vosspropertysolutions.com";
+
 const HEADERS = [
   "Full Name",
   "Phone number",
@@ -178,8 +183,8 @@ function ensureRetryTrigger_() {
 }
 
 function getLeadSheet_(properties) {
-  const spreadsheetId = properties.getProperty("SPREADSHEET_ID");
-  const sheetName = properties.getProperty("SHEET_NAME") || "Estimate Leads";
+  const spreadsheetId = properties.getProperty("SPREADSHEET_ID") || DEFAULT_SPREADSHEET_ID;
+  const sheetName = properties.getProperty("SHEET_NAME") || DEFAULT_SHEET_NAME;
   if (!spreadsheetId) throw new Error("SPREADSHEET_ID is not configured.");
 
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
@@ -213,7 +218,7 @@ function findLeadRow_(sheet, leadId) {
 
 function verifyTurnstile_(properties, token) {
   const secret = properties.getProperty("TURNSTILE_SECRET_KEY");
-  const expectedHostnames = String(properties.getProperty("TURNSTILE_HOSTNAMES") || "")
+  const expectedHostnames = String(properties.getProperty("TURNSTILE_HOSTNAMES") || DEFAULT_TURNSTILE_HOSTNAMES)
     .split(",")
     .map(function (hostname) { return hostname.trim().toLowerCase(); })
     .filter(String);
@@ -392,7 +397,7 @@ function rowToLead_(row) {
 }
 
 function sendLeadEmail_(properties, lead, sheet) {
-  const recipients = properties.getProperty("NOTIFY_EMAILS");
+  const recipients = properties.getProperty("NOTIFY_EMAILS") || DEFAULT_NOTIFY_EMAILS;
   if (!recipients) throw new Error("NOTIFY_EMAILS is not configured.");
 
   const subject = "New Voss Estimate Lead — " + lead.fullName + " — " + lead.serviceNeeded;
