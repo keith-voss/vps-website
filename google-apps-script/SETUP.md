@@ -1,48 +1,53 @@
 # Google Sheets estimate intake setup
 
-The website posts validated estimate requests to `/api/estimate`. The Vercel Function forwards each lead to the Google Apps Script in `Code.gs`, which appends a row and then emails the configured recipients.
+The website posts estimate requests directly to a Google Apps Script web app. Apps Script validates the request, verifies Cloudflare Turnstile, appends the lead to the Sheet, emails the configured recipients, and exposes a read-only status check so the website confirms that the row was actually saved.
 
-## 1. Create the Sheet and Apps Script
+## 1. Sheet and Apps Script
 
-1. Create a Google Sheet owned by the Voss business Google account.
-2. Open **Extensions → Apps Script**.
-3. Replace the editor contents with `google-apps-script/Code.gs`.
-4. In Apps Script, open **Project Settings → Script properties** and create:
-   - `SPREADSHEET_ID`: the ID between `/d/` and `/edit` in the Sheet URL.
-   - `SHEET_NAME`: `Estimate Leads`.
+Use the shared Sheet:
+
+- Spreadsheet ID: `1fKcPMTqLMdT6iuPp9hTpZ_KQUQgxq03vFGryemMV4-M`
+- Existing tab: `Sheet1`
+
+Under the Google account that owns or can edit the Sheet:
+
+1. Open **Extensions → Apps Script**.
+2. Replace the editor contents with `google-apps-script/Code.gs`.
+3. Open **Project Settings → Script properties** and create:
+   - `SPREADSHEET_ID`: `1fKcPMTqLMdT6iuPp9hTpZ_KQUQgxq03vFGryemMV4-M`
+   - `SHEET_NAME`: `Sheet1`
    - `NOTIFY_EMAILS`: comma-separated notification recipients.
-   - `LEAD_WEBHOOK_SECRET`: a long random value. Use the same value in Vercel.
-5. Run `setupLeadSheet` once and authorize access to Google Sheets and email.
+   - `TURNSTILE_SECRET_KEY`: the Cloudflare Turnstile server-side secret.
+   - `TURNSTILE_HOSTNAMES`: comma-separated approved hostnames, for example `vosspropertysolutions.com,www.vosspropertysolutions.com`.
+4. Run `setupLeadSheet` once and authorize Google Sheets, external-request and email access.
 
-`setupLeadSheet` also installs a 15-minute retry trigger. If a lead is saved but email delivery fails, the `Notification Status` column records the failure and the trigger retries it without creating a duplicate lead.
+`setupLeadSheet` preserves the Sheet's seven existing lead columns, adds the operational/tracking columns, formats the header, and installs a 15-minute notification retry trigger.
 
-## 2. Deploy the Apps Script
+## 2. Deploy Apps Script
 
 1. Select **Deploy → New deployment → Web app**.
 2. Execute as: **Me**.
-3. Who has access: **Anyone**. The shared secret still protects writes.
-4. Deploy and copy the `/exec` URL.
+3. Who has access: **Anyone**.
+4. Deploy and copy the URL ending in `/exec`.
 
-Do not put the Apps Script URL or webhook secret in frontend variables beginning with `VITE_`.
+Public writes are protected by server-side Turnstile verification. The status endpoint exposes only whether a random UUID lead reference exists; it does not return customer details.
 
-## 3. Configure Vercel
+## 3. Configure the website
 
-Create a free Cloudflare Turnstile widget for the production and preview domains, then add these environment variables for Production and Preview:
+Create a free Cloudflare Turnstile widget for the production domain, then add these frontend build variables in Vercel:
 
-- `GOOGLE_APPS_SCRIPT_URL`: the Apps Script `/exec` deployment URL.
-- `LEAD_WEBHOOK_SECRET`: the same random value stored in Apps Script properties.
-- `TURNSTILE_SECRET_KEY`: the Turnstile server-side secret.
-- `VITE_TURNSTILE_SITE_KEY`: the Turnstile public site key used by the form.
+- `VITE_GOOGLE_APPS_SCRIPT_URL`: the Apps Script `/exec` deployment URL.
+- `VITE_TURNSTILE_SITE_KEY`: the Turnstile public site key.
 
-Redeploy after saving the variables.
+Redeploy after saving the variables. No Vercel Function or server-side Vercel secret is required.
 
 ## 4. Acceptance test
 
 1. Open the deployed Voss website.
 2. Submit a clearly labeled test lead through the Free Estimate form.
-3. Confirm the website returns a lead reference.
-4. Confirm exactly one row with that lead ID appears in the `Estimate Leads` sheet.
-5. Confirm every configured recipient receives the email and its Sheet link opens the same lead tracker.
+3. Confirm the website displays a lead reference.
+4. Confirm exactly one row with that lead ID appears in `Sheet1`.
+5. Confirm every configured recipient receives the email and its Sheet link opens the same tracker.
 6. Confirm the row's `Notification Status` is `Sent`.
 7. Delete the test row after verification.
 

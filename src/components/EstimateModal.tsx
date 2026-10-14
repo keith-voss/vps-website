@@ -27,6 +27,81 @@ function trackingValue(name: string) {
   return new URLSearchParams(window.location.search).get(name) || "";
 }
 
+interface LeadStatus {
+  stored?: boolean;
+  leadId?: string;
+}
+
+function jsonpLeadStatus(scriptUrl: string, submissionId: string, signal: AbortSignal) {
+  return new Promise<LeadStatus>((resolve, reject) => {
+    const callbackName = `vpsLeadStatus_${crypto.randomUUID().replace(/-/g, "")}`;
+    const script = document.createElement("script");
+    const callbacks = window as unknown as Record<string, unknown>;
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("Lead-status confirmation timed out."));
+    }, 5_000);
+
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      script.remove();
+      delete callbacks[callbackName];
+      signal.removeEventListener("abort", handleAbort);
+    };
+    const handleAbort = () => {
+      cleanup();
+      reject(new DOMException("Request cancelled", "AbortError"));
+    };
+
+    callbacks[callbackName] = (result: LeadStatus) => {
+      cleanup();
+      resolve(result);
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Could not confirm the saved request."));
+    };
+    signal.addEventListener("abort", handleAbort, { once: true });
+
+    const url = new URL(scriptUrl);
+    url.searchParams.set("action", "status");
+    url.searchParams.set("submissionId", submissionId);
+    url.searchParams.set("callback", callbackName);
+    script.src = url.toString();
+    document.head.appendChild(script);
+  });
+}
+
+async function confirmLeadSaved(scriptUrl: string, submissionId: string, signal: AbortSignal) {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    let result: LeadStatus = {};
+    try {
+      result = await jsonpLeadStatus(scriptUrl, submissionId, signal);
+    } catch (error) {
+      if (signal.aborted) throw error;
+    }
+    if (result.stored && result.leadId) return result;
+    await new Promise<void>((resolve, reject) => {
+      const handleAbort = () => {
+        window.clearTimeout(timer);
+        reject(new DOMException("Request cancelled", "AbortError"));
+      };
+      const timer = window.setTimeout(() => {
+        signal.removeEventListener("abort", handleAbort);
+        resolve();
+      }, 1_000);
+      signal.addEventListener("abort", handleAbort, { once: true });
+    });
+  }
+  throw new Error("We could not confirm that your request was saved. Please try again or call 443-970-1440.");
+}
+
+function detectDevice() {
+  if (/tablet|ipad/i.test(navigator.userAgent)) return "Tablet";
+  if (/mobile|iphone|android/i.test(navigator.userAgent)) return "Mobile";
+  return "Desktop";
+}
+
 const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -63,11 +138,18 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    const submissionId = submissionRef.current + 1;
-    submissionRef.current = submissionId;
+    const submissionAttempt = submissionRef.current + 1;
+    submissionRef.current = submissionAttempt;
+
+    const scriptUrl = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL as string | undefined;
+    if (!scriptUrl) {
+      setSubmissionState("error");
+      setErrorMessage("Estimate intake is not configured. Please call 443-970-1440.");
+      return;
+    }
 
     const formData = new FormData(event.currentTarget);
-    const payload = {
+    const lead = {
       fullName: formData.get("fullName"),
       companyProperty: formData.get("companyProperty"),
       phone: formData.get("phone"),
@@ -88,29 +170,26 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
       utmSource: trackingValue("utm_source"),
       utmMedium: trackingValue("utm_medium"),
       utmCampaign: trackingValue("utm_campaign"),
-      turnstileToken,
+      deviceType: detectDevice(),
     };
 
     try {
-      const response = await fetch("/api/estimate", {
+      await fetch(scriptUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ lead, turnstileToken }),
+        mode: "no-cors",
         signal: controller.signal,
       });
-      const result = await response.json().catch(() => null);
 
-      if (submissionRef.current !== submissionId) return;
-
-      if (!response.ok || result?.ok !== true) {
-        throw new Error(result?.error || "We could not submit your request.");
-      }
+      const result = await confirmLeadSaved(scriptUrl, submissionId, controller.signal);
+      if (submissionRef.current !== submissionAttempt) return;
 
       setLeadId(result.leadId || "");
       setSubmissionState("success");
       formRef.current?.reset();
     } catch (error) {
-      if (submissionRef.current !== submissionId || controller.signal.aborted) return;
+      if (submissionRef.current !== submissionAttempt || controller.signal.aborted) return;
       setSubmissionState("error");
       setTurnstileToken("");
       setTurnstileResetKey((key) => key + 1);

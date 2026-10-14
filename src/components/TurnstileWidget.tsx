@@ -71,6 +71,7 @@ const TurnstileWidget = ({ onTokenChange, resetKey }: TurnstileWidgetProps) => {
             onTokenChange("");
             setLoadError(true);
           },
+          action: "estimate_request",
           theme: "light",
         });
       })
