@@ -49,8 +49,17 @@ function doGet(event) {
   if (!leadId) return javascriptResponse_(callback, { stored: false });
 
   try {
-    const cached = CacheService.getScriptCache().get(statusCacheKey_(submissionId));
-    return javascriptResponse_(callback, cached ? JSON.parse(cached) : { stored: false });
+    const key = statusCacheKey_(submissionId);
+    const cached = CacheService.getScriptCache().get(key);
+    const persisted = cached || PropertiesService.getScriptProperties().getProperty(key);
+    if (!persisted) return javascriptResponse_(callback, { stored: false });
+
+    const status = JSON.parse(persisted);
+    if (status.expiresAt && status.expiresAt < Date.now()) {
+      PropertiesService.getScriptProperties().deleteProperty(key);
+      return javascriptResponse_(callback, { stored: false });
+    }
+    return javascriptResponse_(callback, status);
   } catch (error) {
     console.error(error);
     return javascriptResponse_(callback, { stored: false });
@@ -139,6 +148,7 @@ function retryFailedNotifications() {
   lock.waitLock(10000);
 
   try {
+    pruneExpiredLeadStatuses_(properties);
     const sheet = getLeadSheet_(properties);
     ensureHeaders_(sheet);
     if (sheet.getLastRow() < 2) return;
@@ -264,15 +274,29 @@ function statusCacheKey_(submissionId) {
 
 function cacheLeadStatus_(submissionId, leadId, notificationStatus) {
   if (!submissionId || !leadId) return;
-  CacheService.getScriptCache().put(
-    statusCacheKey_(submissionId),
-    JSON.stringify({
-      stored: true,
-      leadId: leadId,
-      notificationStatus: notificationStatus,
-    }),
-    21600,
-  );
+  const key = statusCacheKey_(submissionId);
+  const value = JSON.stringify({
+    stored: true,
+    leadId: leadId,
+    notificationStatus: notificationStatus,
+    expiresAt: Date.now() + 21600000,
+  });
+  CacheService.getScriptCache().put(key, value, 21600);
+  PropertiesService.getScriptProperties().setProperty(key, value);
+}
+
+function pruneExpiredLeadStatuses_(properties) {
+  const now = Date.now();
+  const allProperties = properties.getProperties();
+  Object.keys(allProperties).forEach(function (key) {
+    if (key.indexOf("lead-status:") !== 0) return;
+    try {
+      const status = JSON.parse(allProperties[key]);
+      if (!status.expiresAt || status.expiresAt < now) properties.deleteProperty(key);
+    } catch (error) {
+      properties.deleteProperty(key);
+    }
+  });
 }
 
 function limitedText_(value, maxLength) {

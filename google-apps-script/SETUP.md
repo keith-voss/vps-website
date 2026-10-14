@@ -25,7 +25,7 @@ Under the Google account that owns or can edit the Sheet:
 3. Who has access: **Anyone**.
 4. Deploy and copy the URL ending in `/exec`.
 
-The public form uses a hidden honeypot, strict field validation, stable random lead references, and duplicate prevention. The status endpoint exposes only whether a random UUID lead reference exists; it does not return customer details.
+The public form uses a hidden honeypot, strict field validation, stable random lead references, and duplicate prevention. The status endpoint uses a short-lived direct lookup so browser confirmation does not depend on eventually consistent cache timing. It exposes only whether a random UUID lead reference exists; it does not return customer details.
 
 ## 3. Configure the website
 
