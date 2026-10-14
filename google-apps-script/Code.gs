@@ -3,7 +3,7 @@ const DEFAULT_SHEET_NAME = "Sheet1";
 const DEFAULT_NOTIFY_EMAILS = "keith@vosspropertysolutions.com";
 
 const HEADERS = [
-  "Full Name",
+  "Full name",
   "Phone number",
   "Email",
   "Service needed",

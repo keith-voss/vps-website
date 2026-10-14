@@ -49,6 +49,16 @@ test("matches the existing seven Sheet columns before operational fields", () =>
   const lead = context.normalizeLead_(rawLead);
   const row = context.leadToRow_(lead, "Pending");
 
+  const headers = vm.runInContext("HEADERS.slice(0, 7)", context);
+  assert.deepEqual(Array.from(headers), [
+    "Full name",
+    "Phone number",
+    "Email",
+    "Service needed",
+    "City",
+    "Brief Project Description",
+    "Permission to contact you",
+  ]);
   assert.deepEqual(Array.from(row.slice(0, 7)), [
     "Jane Doe",
     "443-555-0123",
