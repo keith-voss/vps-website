@@ -30,3 +30,15 @@ test("uses the requested customer-facing success message", () => {
   assert.match(source, /role="status"/);
   assert.match(source, /aria-live="polite"/);
 });
+
+test("validates phone and email before dispatching the lead", () => {
+  const validationIndex = source.indexOf("phoneInput.setCustomValidity");
+  const dispatchIndex = source.indexOf("const postRequest = fetch(scriptUrl");
+
+  assert.ok(validationIndex >= 0, "expected contact validation");
+  assert.ok(validationIndex < dispatchIndex, "contact validation must run before dispatch");
+  assert.match(source, /isValidUsPhoneNumber\(phone\)/);
+  assert.match(source, /isValidEmailAddress\(email\)/);
+  assert.match(source, /valid 10-digit U\.S\. phone number/);
+  assert.match(source, /valid email address, including the domain/);
+});
