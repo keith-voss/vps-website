@@ -42,3 +42,9 @@ test("validates phone and email before dispatching the lead", () => {
   assert.match(source, /valid 10-digit U\.S\. phone number/);
   assert.match(source, /valid email address, including the domain/);
 });
+
+test("blocks common email-domain typos and suggests the correction", () => {
+  assert.match(source, /"gmail\.con": "gmail\.com"/);
+  assert.match(source, /domain\.endsWith\("\.con"\)/);
+  assert.match(source, /That email domain looks mistyped\. Did you mean/);
+});
