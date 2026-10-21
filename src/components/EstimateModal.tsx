@@ -20,7 +20,6 @@ interface EstimateModalProps {
 type SubmissionState = "idle" | "submitting" | "success" | "error";
 
 const fieldLabelClass = "mb-1.5 block text-sm font-semibold text-industrial-black";
-const selectClass = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 function trackingValue(name: string) {
   return new URLSearchParams(window.location.search).get(name) || "";
@@ -145,15 +144,8 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
       companyProperty: formData.get("companyProperty"),
       phone: formData.get("phone"),
       email: formData.get("email"),
-      serviceNeeded: formData.get("serviceNeeded"),
-      propertyType: formData.get("propertyType"),
       projectLocation: formData.get("projectLocation"),
       projectDescription: formData.get("projectDescription"),
-      projectTimeline: formData.get("projectTimeline"),
-      preferredContactMethod: formData.get("preferredContactMethod"),
-      preferredContactTime: formData.get("preferredContactTime"),
-      referralSource: formData.get("referralSource"),
-      consent: formData.get("consent") === "on",
       website: formData.get("website"),
       submissionId,
       sourcePage: `${window.location.pathname}${window.location.search}`,
@@ -226,8 +218,8 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
                     <Input id="estimate-full-name" name="fullName" autoComplete="name" maxLength={100} required />
                   </div>
                   <div>
-                    <label className={fieldLabelClass} htmlFor="estimate-company">Company or property name</label>
-                    <Input id="estimate-company" name="companyProperty" autoComplete="organization" maxLength={160} />
+                    <label className={fieldLabelClass} htmlFor="estimate-company">Company name *</label>
+                    <Input id="estimate-company" name="companyProperty" autoComplete="organization" maxLength={160} required />
                   </div>
                   <div>
                     <label className={fieldLabelClass} htmlFor="estimate-phone">Phone *</label>
@@ -241,101 +233,28 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-lg font-bold text-industrial-black">Project details</legend>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className={fieldLabelClass} htmlFor="estimate-service">Service needed *</label>
-                    <select id="estimate-service" name="serviceNeeded" className={selectClass} defaultValue="" required>
-                      <option value="" disabled>Select a service</option>
-                      <option>Lines & Stenciling</option>
-                      <option>Warehouse Safety</option>
-                      <option>ADA Compliance</option>
-                      <option>Paving & Sealcoating</option>
-                      <option>Curbs & Delineators</option>
-                      <option>Custom Markings</option>
-                      <option>Not sure / Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className={fieldLabelClass} htmlFor="estimate-property-type">Property type</label>
-                    <select id="estimate-property-type" name="propertyType" className={selectClass} defaultValue="">
-                      <option value="">Select a property type</option>
-                      <option>Parking Lot</option>
-                      <option>Warehouse / Industrial</option>
-                      <option>Retail / Commercial</option>
-                      <option>School / Campus</option>
-                      <option>Healthcare Facility</option>
-                      <option>Government / Municipal</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                </div>
+                <legend className="text-lg font-bold text-industrial-black">Work details</legend>
                 <div>
-                  <label className={fieldLabelClass} htmlFor="estimate-location">Project address or city *</label>
+                  <label className={fieldLabelClass} htmlFor="estimate-location">Address *</label>
                   <Input id="estimate-location" name="projectLocation" autoComplete="street-address" maxLength={200} required />
                 </div>
                 <div>
-                  <label className={fieldLabelClass} htmlFor="estimate-description">Brief project description *</label>
+                  <label className={fieldLabelClass} htmlFor="estimate-description">Brief description of work *</label>
                   <Textarea
                     id="estimate-description"
                     name="projectDescription"
                     maxLength={2000}
                     minLength={10}
                     rows={4}
-                    placeholder="What work is needed, approximate size, and any deadlines or safety concerns?"
+                    placeholder="Tell us what work you need completed."
                     required
                   />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className={fieldLabelClass} htmlFor="estimate-timeline">Desired project timeline</label>
-                    <select id="estimate-timeline" name="projectTimeline" className={selectClass} defaultValue="">
-                      <option value="">Select a timeline</option>
-                      <option>As soon as possible</option>
-                      <option>Within 30 days</option>
-                      <option>1–3 months</option>
-                      <option>3+ months</option>
-                      <option>Planning / budgeting</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className={fieldLabelClass} htmlFor="estimate-referral">How did you hear about us?</label>
-                    <select id="estimate-referral" name="referralSource" className={selectClass} defaultValue="">
-                      <option value="">Select an option</option>
-                      <option>Google</option>
-                      <option>Referral</option>
-                      <option>Existing customer</option>
-                      <option>Social media</option>
-                      <option>Sign / vehicle</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                </div>
               </fieldset>
 
-              <fieldset className="space-y-4">
-                <legend className="text-lg font-bold text-industrial-black">Contact preference</legend>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className={fieldLabelClass} htmlFor="estimate-contact-method">Preferred contact method</label>
-                    <select id="estimate-contact-method" name="preferredContactMethod" className={selectClass} defaultValue="">
-                      <option value="">No preference</option>
-                      <option>Phone</option>
-                      <option>Email</option>
-                      <option>Text message</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className={fieldLabelClass} htmlFor="estimate-contact-time">Preferred time to contact</label>
-                    <Input id="estimate-contact-time" name="preferredContactTime" maxLength={100} placeholder="e.g. Weekday mornings" />
-                  </div>
-                </div>
-              </fieldset>
-
-              <label className="flex items-start gap-3 rounded-md border bg-muted/30 p-4 text-sm leading-relaxed">
-                <input name="consent" type="checkbox" required className="mt-1 h-4 w-4 accent-primary" />
-                <span>I agree that Voss Property Solutions may contact me by phone, text, or email about this estimate request. *</span>
-              </label>
+              <p className="rounded-md border bg-muted/30 p-4 text-sm leading-relaxed text-muted-foreground">
+                By submitting this request, you are asking Voss Property Solutions to contact you about this estimate.
+              </p>
 
               {submissionState === "error" && (
                 <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">

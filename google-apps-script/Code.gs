@@ -30,6 +30,7 @@ const HEADERS = [
   "Contacted At",
   "Estimate Status",
   "Notes",
+  "Address",
 ];
 
 const LEAD_ID_COLUMN = HEADERS.indexOf("Lead ID") + 1;
@@ -49,8 +50,17 @@ function doGet(event) {
   if (!leadId) return javascriptResponse_(callback, { stored: false });
 
   try {
-    const cached = CacheService.getScriptCache().get(statusCacheKey_(submissionId));
-    return javascriptResponse_(callback, cached ? JSON.parse(cached) : { stored: false });
+    const key = statusCacheKey_(submissionId);
+    const cached = CacheService.getScriptCache().get(key);
+    const persisted = cached || PropertiesService.getScriptProperties().getProperty(key);
+    if (!persisted) return javascriptResponse_(callback, { stored: false });
+
+    const status = JSON.parse(persisted);
+    if (status.expiresAt && status.expiresAt < Date.now()) {
+      PropertiesService.getScriptProperties().deleteProperty(key);
+      return javascriptResponse_(callback, { stored: false });
+    }
+    return javascriptResponse_(callback, status);
   } catch (error) {
     console.error(error);
     return javascriptResponse_(callback, { stored: false });
@@ -139,6 +149,7 @@ function retryFailedNotifications() {
   lock.waitLock(10000);
 
   try {
+    pruneExpiredLeadStatuses_(properties);
     const sheet = getLeadSheet_(properties);
     ensureHeaders_(sheet);
     if (sheet.getLastRow() < 2) return;
@@ -264,15 +275,29 @@ function statusCacheKey_(submissionId) {
 
 function cacheLeadStatus_(submissionId, leadId, notificationStatus) {
   if (!submissionId || !leadId) return;
-  CacheService.getScriptCache().put(
-    statusCacheKey_(submissionId),
-    JSON.stringify({
-      stored: true,
-      leadId: leadId,
-      notificationStatus: notificationStatus,
-    }),
-    21600,
-  );
+  const key = statusCacheKey_(submissionId);
+  const value = JSON.stringify({
+    stored: true,
+    leadId: leadId,
+    notificationStatus: notificationStatus,
+    expiresAt: Date.now() + 21600000,
+  });
+  CacheService.getScriptCache().put(key, value, 21600);
+  PropertiesService.getScriptProperties().setProperty(key, value);
+}
+
+function pruneExpiredLeadStatuses_(properties) {
+  const now = Date.now();
+  const allProperties = properties.getProperties();
+  Object.keys(allProperties).forEach(function (key) {
+    if (key.indexOf("lead-status:") !== 0) return;
+    try {
+      const status = JSON.parse(allProperties[key]);
+      if (!status.expiresAt || status.expiresAt < now) properties.deleteProperty(key);
+    } catch (error) {
+      properties.deleteProperty(key);
+    }
+  });
 }
 
 function limitedText_(value, maxLength) {
@@ -288,9 +313,9 @@ function validateLead_(lead) {
     "leadId",
     "submittedAt",
     "fullName",
+    "companyProperty",
     "phone",
     "email",
-    "serviceNeeded",
     "projectLocation",
     "projectDescription",
   ];
@@ -301,10 +326,10 @@ function validateLead_(lead) {
     }
   });
 
-  if (lead.consent !== true) throw new Error("Consent is required.");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) throw new Error("Invalid email address.");
   const phoneDigits = lead.phone.replace(/\D/g, "");
   if (phoneDigits.length < 7 || phoneDigits.length > 15) throw new Error("Invalid phone number.");
+  if (lead.projectDescription.length < 10) throw new Error("Brief description must be at least 10 characters.");
 }
 
 function leadToRow_(lead, notificationStatus) {
@@ -313,9 +338,9 @@ function leadToRow_(lead, notificationStatus) {
     safeCell_(lead.phone),
     safeCell_(lead.email),
     safeCell_(lead.serviceNeeded),
-    safeCell_(lead.projectLocation),
+    "",
     safeCell_(lead.projectDescription),
-    lead.consent === true ? "Yes" : "No",
+    "Contact requested",
     safeCell_(lead.leadId),
     safeCell_(lead.submittedAt),
     "New",
@@ -336,6 +361,7 @@ function leadToRow_(lead, notificationStatus) {
     "",
     "",
     "",
+    safeCell_(lead.projectLocation),
   ];
 }
 
@@ -345,7 +371,7 @@ function rowToLead_(row) {
     phone: String(row[1] || ""),
     email: String(row[2] || ""),
     serviceNeeded: String(row[3] || ""),
-    projectLocation: String(row[4] || ""),
+    projectLocation: String(row[27] || row[4] || ""),
     projectDescription: String(row[5] || ""),
     consent: String(row[6] || "") === "Yes",
     leadId: String(row[7] || ""),
@@ -369,21 +395,16 @@ function sendLeadEmail_(properties, lead, sheet) {
   const recipients = properties.getProperty("NOTIFY_EMAILS") || DEFAULT_NOTIFY_EMAILS;
   if (!recipients) throw new Error("NOTIFY_EMAILS is not configured.");
 
-  const subject = "New Voss Estimate Lead — " + lead.fullName + " — " + lead.serviceNeeded;
+  const subject = "New Voss Estimate Lead — " + lead.fullName + " — " + lead.companyProperty;
   const sheetUrl = sheet.getParent().getUrl();
   const plainBody = [
     "A new estimate request was submitted through the Voss website.",
     "",
     "Name: " + lead.fullName,
-    "Company / property: " + (lead.companyProperty || "Not provided"),
+    "Company name: " + lead.companyProperty,
     "Phone: " + lead.phone,
     "Email: " + lead.email,
-    "Service: " + lead.serviceNeeded,
-    "Property type: " + (lead.propertyType || "Not provided"),
-    "Location: " + lead.projectLocation,
-    "Timeline: " + (lead.projectTimeline || "Not provided"),
-    "Preferred contact: " + (lead.preferredContactMethod || "No preference"),
-    "Preferred time: " + (lead.preferredContactTime || "Not provided"),
+    "Address: " + lead.projectLocation,
     "",
     "Project description:",
     lead.projectDescription,
@@ -396,15 +417,10 @@ function sendLeadEmail_(properties, lead, sheet) {
 
   const rows = [
     ["Name", lead.fullName],
-    ["Company / property", lead.companyProperty || "Not provided"],
+    ["Company name", lead.companyProperty],
     ["Phone", lead.phone],
     ["Email", lead.email],
-    ["Service", lead.serviceNeeded],
-    ["Property type", lead.propertyType || "Not provided"],
-    ["Location", lead.projectLocation],
-    ["Timeline", lead.projectTimeline || "Not provided"],
-    ["Preferred contact", lead.preferredContactMethod || "No preference"],
-    ["Preferred time", lead.preferredContactTime || "Not provided"],
+    ["Address", lead.projectLocation],
     ["Source", lead.sourcePage || "Unknown"],
     ["Lead ID", lead.leadId],
   ].map(function (row) {

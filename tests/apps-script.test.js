@@ -45,6 +45,45 @@ test("normalizes and validates a direct browser lead", () => {
   assert.equal(lead.status, "New");
 });
 
+test("accepts Keith's six-field estimate request", () => {
+  const lead = context.normalizeLead_({
+    submissionId,
+    fullName: "Jane Doe",
+    companyProperty: "Acme Distribution",
+    projectLocation: "100 Main Street, Baltimore, MD",
+    phone: "443-555-0123",
+    email: "jane@example.com",
+    projectDescription: "Restripe the employee parking lot.",
+  });
+
+  assert.doesNotThrow(() => context.validateLead_(lead));
+  assert.equal(lead.serviceNeeded, "");
+  assert.equal(lead.consent, false);
+  const row = context.leadToRow_(lead, "Pending");
+  assert.equal(row[4], "");
+  assert.equal(row[6], "Contact requested");
+  assert.equal(row[27], "100 Main Street, Baltimore, MD");
+});
+
+test("enforces the description minimum on direct posts", () => {
+  const baseLead = {
+    submissionId,
+    fullName: "Jane Doe",
+    companyProperty: "Acme Distribution",
+    projectLocation: "100 Main Street, Baltimore, MD",
+    phone: "443-555-0123",
+    email: "jane@example.com",
+  };
+
+  assert.throws(
+    () => context.validateLead_(context.normalizeLead_({ ...baseLead, projectDescription: "123456789" })),
+    /at least 10 characters/,
+  );
+  assert.doesNotThrow(
+    () => context.validateLead_(context.normalizeLead_({ ...baseLead, projectDescription: "1234567890" })),
+  );
+});
+
 test("matches the existing seven Sheet columns before operational fields", () => {
   const lead = context.normalizeLead_(rawLead);
   const row = context.leadToRow_(lead, "Pending");
@@ -54,10 +93,11 @@ test("matches the existing seven Sheet columns before operational fields", () =>
     "443-555-0123",
     "jane@example.com",
     "Warehouse Safety",
-    "Baltimore, MD",
+    "",
     "Repaint pedestrian lanes and loading zones.",
-    "Yes",
+    "Contact requested",
   ]);
+  assert.equal(row[27], "Baltimore, MD");
   assert.equal(row[7], "VPS-11111111-2222-4333-8444-555555555555");
   assert.equal(row[22], "Pending");
 });
@@ -69,5 +109,31 @@ test("round-trips rows for notification retries", () => {
   assert.equal(restored.leadId, lead.leadId);
   assert.equal(restored.fullName, lead.fullName);
   assert.equal(restored.projectLocation, lead.projectLocation);
-  assert.equal(restored.consent, true);
+  assert.equal(restored.consent, false);
+});
+
+test("emails all six requested fields", () => {
+  let sentEmail;
+  context.MailApp = { sendEmail: (message) => { sentEmail = message; } };
+  const lead = context.normalizeLead_({
+    submissionId,
+    fullName: "Jane Doe",
+    companyProperty: "Acme Distribution",
+    projectLocation: "100 Main Street, Baltimore, MD",
+    phone: "443-555-0123",
+    email: "jane@example.com",
+    projectDescription: "Restripe the employee parking lot.",
+  });
+  const properties = { getProperty: () => "keith@example.com" };
+  const sheet = { getParent: () => ({ getUrl: () => "https://example.com/sheet" }) };
+
+  context.sendLeadEmail_(properties, lead, sheet);
+
+  [lead.fullName, lead.companyProperty, lead.projectLocation, lead.phone, lead.email, lead.projectDescription]
+    .forEach((value) => {
+      assert.match(sentEmail.body, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+      assert.match(sentEmail.htmlBody, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    });
+  assert.equal(sentEmail.to, "keith@example.com");
+  assert.equal(sentEmail.replyTo, lead.email);
 });

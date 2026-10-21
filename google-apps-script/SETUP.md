@@ -1,6 +1,6 @@
 # Google Sheets estimate intake setup
 
-The website posts estimate requests directly to a Google Apps Script web app. Apps Script validates the request, appends the lead to the Sheet, emails the configured recipients, and exposes a read-only status check so the website confirms that the row was actually saved.
+The website collects Keith's six required fields—name, company name, address, phone, email, and a brief description of the work—and posts estimate requests directly to a Google Apps Script web app. Apps Script validates the request, appends the lead to the Sheet, emails the configured recipients, and exposes a read-only status check so the website confirms that the row was actually saved.
 
 ## 1. Sheet and Apps Script
 
@@ -18,6 +18,8 @@ Under the Google account that owns or can edit the Sheet:
 
 `setupLeadSheet` preserves the Sheet's seven existing lead columns, adds the operational/tracking columns, formats the header, and installs a 15-minute notification retry trigger.
 
+For compatibility with the existing Sheet, its legacy `City` column remains in place. New submissions leave that column blank and store the complete project location in the appended `Address` column. Company name continues to use `Company / Property`; unused legacy fields remain blank.
+
 ## 2. Deploy Apps Script
 
 1. Select **Deploy → New deployment → Web app**.
@@ -25,7 +27,7 @@ Under the Google account that owns or can edit the Sheet:
 3. Who has access: **Anyone**.
 4. Deploy and copy the URL ending in `/exec`.
 
-The public form uses a hidden honeypot, strict field validation, stable random lead references, and duplicate prevention. The status endpoint exposes only whether a random UUID lead reference exists; it does not return customer details.
+The public form uses a hidden honeypot, strict field validation, stable random lead references, and duplicate prevention. The status endpoint uses a short-lived direct lookup so browser confirmation does not depend on eventually consistent cache timing. It exposes only whether a random UUID lead reference exists; it does not return customer details.
 
 ## 3. Configure the website
 
