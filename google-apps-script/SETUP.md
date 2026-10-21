@@ -16,9 +16,7 @@ Under the Google account that owns or can edit the Sheet:
 3. Optional Script Property overrides are available for `SPREADSHEET_ID`, `SHEET_NAME`, and `NOTIFY_EMAILS`. The prepared script already defaults to the supplied Sheet, `Sheet1`, and `keith@vosspropertysolutions.com`.
 4. Run `setupLeadSheet` once and authorize Google Sheets and email access.
 
-`setupLeadSheet` preserves the Sheet's seven existing lead columns, adds the operational/tracking columns, formats the header, and installs a 15-minute notification retry trigger.
-
-For compatibility with the existing Sheet, its legacy `City` column remains in place. New submissions leave that column blank and store the complete project location in the appended `Address` column. Company name continues to use `Company / Property`; unused legacy fields remain blank.
+`setupLeadSheet` verifies the live 16-column Sheet schema, formats the header, and installs a 15-minute notification retry trigger. The six customer fields map directly to `Full Name`, `Company Name`, `Phone number`, `Email`, `Address`, and `Brief Project Description`; the remaining columns are operational tracking fields.
 
 ## 2. Deploy Apps Script
 
