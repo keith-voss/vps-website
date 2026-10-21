@@ -156,41 +156,45 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
       deviceType: detectDevice(),
     };
 
-    try {
-      await fetch(scriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ lead }),
-        mode: "no-cors",
-        signal: controller.signal,
+    // Dispatch the opaque Apps Script request, then release the visitor immediately.
+    // Apps Script may continue persisting the row and sending email after this modal
+    // has shown success, so the POST must not be tied to the modal's abort signal.
+    const postRequest = fetch(scriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ lead }),
+      mode: "no-cors",
+      keepalive: true,
+    });
+
+    setSubmissionState("success");
+    formRef.current?.reset();
+
+    // Confirmation is useful for attaching the reference number, but it is not
+    // allowed to hold the visitor on the form or replace success with a false error.
+    void confirmLeadSaved(scriptUrl, submissionId, controller.signal)
+      .then((result) => {
+        if (submissionRef.current !== submissionAttempt || controller.signal.aborted) return;
+        setLeadId(result.leadId || "");
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) console.warn("Lead confirmation is still pending.", error);
       });
 
-      const result = await confirmLeadSaved(scriptUrl, submissionId, controller.signal);
-      if (submissionRef.current !== submissionAttempt) return;
-
-      setLeadId(result.leadId || "");
-      setSubmissionState("success");
-      formRef.current?.reset();
-    } catch (error) {
-      if (submissionRef.current !== submissionAttempt || controller.signal.aborted) return;
-      setSubmissionState("error");
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "We could not submit your request. Please try again.",
-      );
-    }
+    void postRequest.catch((error) => {
+      console.error("Lead dispatch failed after the form was accepted.", error);
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto p-0">
         {submissionState === "success" ? (
-          <div className="p-8 text-center sm:p-12">
+          <div className="p-8 text-center sm:p-12" role="status" aria-live="polite">
             <CheckCircle2 className="mx-auto mb-5 h-14 w-14 text-green-600" aria-hidden="true" />
-            <DialogTitle className="mb-3 text-2xl">Estimate request received</DialogTitle>
+            <DialogTitle className="mb-3 text-2xl">Thank you — request received</DialogTitle>
             <DialogDescription className="mx-auto max-w-lg text-base">
-              Thank you. A member of the Voss Property Solutions team will contact you shortly.
+              Your estimate request is being processed. A member of the Voss Property Solutions team will get back to you shortly.
             </DialogDescription>
             {leadId && <p className="mt-3 text-xs text-muted-foreground">Reference: {leadId}</p>}
             <Button className="mt-7" onClick={() => onOpenChange(false)}>Close</Button>
