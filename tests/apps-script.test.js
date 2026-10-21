@@ -78,6 +78,38 @@ test("enforces the description minimum on direct posts", () => {
   );
 });
 
+test("accepts valid U.S. phone formats and rejects incomplete or impossible numbers", () => {
+  [
+    "443-970-1440",
+    "(443) 970-1440",
+    "+1 443 970 1440",
+  ].forEach((phone) => assert.equal(context.isValidUsPhoneNumber_(phone), true));
+
+  [
+    "970-1440",
+    "123-970-1440",
+    "443-170-1440",
+    "+44 20 7946 0958",
+    "not-a-phone",
+  ].forEach((phone) => assert.equal(context.isValidUsPhoneNumber_(phone), false));
+});
+
+test("accepts deliverable email syntax and rejects common malformed addresses", () => {
+  [
+    "keith@vosspropertysolutions.com",
+    "estimating+web@company.co.uk",
+  ].forEach((email) => assert.equal(context.isValidEmailAddress_(email), true));
+
+  [
+    "keith@",
+    "keith@example",
+    ".keith@example.com",
+    "keith..voss@example.com",
+    "keith@-example.com",
+    "keith@example.c",
+  ].forEach((email) => assert.equal(context.isValidEmailAddress_(email), false));
+});
+
 test("matches the live sixteen-column Sheet schema", () => {
   const lead = context.normalizeLead_(rawLead);
   const row = context.leadToRow_(lead, "Pending");

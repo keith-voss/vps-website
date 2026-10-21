@@ -100,6 +100,31 @@ function detectDevice() {
   return "Desktop";
 }
 
+function isValidEmailAddress(value: string) {
+  const email = value.trim();
+  if (email.length < 6 || email.length > 160 || email.includes("..")) return false;
+
+  const parts = email.split("@");
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  if (!local || local.startsWith(".") || local.endsWith(".")) return false;
+  if (!/^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/i.test(local)) return false;
+
+  const labels = domain.split(".");
+  return labels.length >= 2 && labels.every((label) =>
+    /^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?$/i.test(label),
+  ) && labels.at(-1)!.length >= 2;
+}
+
+function isValidUsPhoneNumber(value: string) {
+  let digits = value.replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+  if (!/^\d{10}$/.test(digits)) return false;
+
+  // NANP area and exchange codes cannot begin with 0 or 1.
+  return /^[2-9]\d{2}[2-9]\d{6}$/.test(digits);
+}
+
 const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -123,8 +148,34 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmissionState("submitting");
     setErrorMessage("");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const phoneInput = form.elements.namedItem("phone") as HTMLInputElement;
+    const emailInput = form.elements.namedItem("email") as HTMLInputElement;
+    const phone = String(formData.get("phone") || "");
+    const email = String(formData.get("email") || "");
+
+    phoneInput.setCustomValidity(isValidUsPhoneNumber(phone)
+      ? ""
+      : "Enter a valid 10-digit U.S. phone number, such as 443-970-1440.");
+    emailInput.setCustomValidity(isValidEmailAddress(email)
+      ? ""
+      : "Enter a valid email address, including the domain, such as name@company.com.");
+
+    if (!phoneInput.checkValidity()) {
+      phoneInput.reportValidity();
+      setSubmissionState("idle");
+      return;
+    }
+    if (!emailInput.checkValidity()) {
+      emailInput.reportValidity();
+      setSubmissionState("idle");
+      return;
+    }
+
+    setSubmissionState("submitting");
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -138,7 +189,6 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
     const lead = {
       fullName: formData.get("fullName"),
       companyProperty: formData.get("companyProperty"),
@@ -227,11 +277,33 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
                   </div>
                   <div>
                     <label className={fieldLabelClass} htmlFor="estimate-phone">Phone *</label>
-                    <Input id="estimate-phone" name="phone" type="tel" autoComplete="tel" maxLength={40} required />
+                    <Input
+                      id="estimate-phone"
+                      name="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      maxLength={40}
+                      placeholder="443-970-1440"
+                      onInput={(event) => event.currentTarget.setCustomValidity("")}
+                      required
+                    />
                   </div>
                   <div>
                     <label className={fieldLabelClass} htmlFor="estimate-email">Email *</label>
-                    <Input id="estimate-email" name="email" type="email" autoComplete="email" maxLength={160} required />
+                    <Input
+                      id="estimate-email"
+                      name="email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      maxLength={160}
+                      placeholder="name@company.com"
+                      onInput={(event) => event.currentTarget.setCustomValidity("")}
+                      required
+                    />
                   </div>
                 </div>
               </fieldset>

@@ -311,10 +311,33 @@ function validateLead_(lead) {
     }
   });
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) throw new Error("Invalid email address.");
-  const phoneDigits = lead.phone.replace(/\D/g, "");
-  if (phoneDigits.length < 7 || phoneDigits.length > 15) throw new Error("Invalid phone number.");
+  if (!isValidEmailAddress_(lead.email)) throw new Error("Invalid email address.");
+  if (!isValidUsPhoneNumber_(lead.phone)) throw new Error("Invalid U.S. phone number.");
   if (lead.projectDescription.length < 10) throw new Error("Brief description must be at least 10 characters.");
+}
+
+function isValidEmailAddress_(value) {
+  const email = String(value || "").trim();
+  if (email.length < 6 || email.length > 160 || email.indexOf("..") !== -1) return false;
+
+  const parts = email.split("@");
+  if (parts.length !== 2) return false;
+  const local = parts[0];
+  const domain = parts[1];
+  if (!local || local.charAt(0) === "." || local.charAt(local.length - 1) === ".") return false;
+  if (!/^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/i.test(local)) return false;
+
+  const labels = domain.split(".");
+  if (labels.length < 2 || labels[labels.length - 1].length < 2) return false;
+  return labels.every(function (label) {
+    return /^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?$/i.test(label);
+  });
+}
+
+function isValidUsPhoneNumber_(value) {
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 11 && digits.charAt(0) === "1") digits = digits.slice(1);
+  return /^[2-9]\d{2}[2-9]\d{6}$/.test(digits);
 }
 
 function leadToRow_(lead, notificationStatus) {
