@@ -11,19 +11,14 @@ const submissionId = "11111111-2222-4333-8444-555555555555";
 const rawLead = {
   submissionId,
   fullName: " Jane Doe ",
+  companyProperty: "Acme Distribution",
   phone: "443-555-0123",
   email: "JANE@EXAMPLE.COM",
-  serviceNeeded: "Warehouse Safety",
-  projectLocation: "Baltimore, MD",
+  projectLocation: "100 Main Street, Baltimore, MD",
   projectDescription: "Repaint pedestrian lanes and loading zones.",
-  consent: true,
-  companyProperty: "Acme Distribution",
-  propertyType: "Warehouse / Industrial",
-  projectTimeline: "Within 30 days",
-  preferredContactMethod: "Phone",
-  preferredContactTime: "Weekday mornings",
   referralSource: "Google",
   sourcePage: "/services",
+  referrer: "https://google.com/",
   deviceType: "Mobile",
 };
 
@@ -57,12 +52,11 @@ test("accepts Keith's six-field estimate request", () => {
   });
 
   assert.doesNotThrow(() => context.validateLead_(lead));
-  assert.equal(lead.serviceNeeded, "");
-  assert.equal(lead.consent, false);
   const row = context.leadToRow_(lead, "Pending");
-  assert.equal(row[4], "");
-  assert.equal(row[6], "Contact requested");
-  assert.equal(row[27], "100 Main Street, Baltimore, MD");
+  assert.equal(row[1], "Acme Distribution");
+  assert.equal(row[4], "100 Main Street, Baltimore, MD");
+  assert.equal(row[15], "Pending");
+  assert.equal(row.length, 16);
 });
 
 test("enforces the description minimum on direct posts", () => {
@@ -84,22 +78,47 @@ test("enforces the description minimum on direct posts", () => {
   );
 });
 
-test("matches the existing seven Sheet columns before operational fields", () => {
+test("matches the live sixteen-column Sheet schema", () => {
   const lead = context.normalizeLead_(rawLead);
   const row = context.leadToRow_(lead, "Pending");
 
-  assert.deepEqual(Array.from(row.slice(0, 7)), [
+  const headers = vm.runInContext("HEADERS", context);
+  assert.deepEqual(Array.from(headers), [
+    "Full Name",
+    "Company Name",
+    "Phone number",
+    "Email",
+    "Address",
+    "Brief Project Description",
+    "Lead ID",
+    "Submitted At",
+    "Status",
+    "Referral Source",
+    "Referrer",
+    "UTM Source",
+    "UTM Medium",
+    "UTM Campaign",
+    "Device Type",
+    "Notification Status",
+  ]);
+  assert.deepEqual(Array.from(row), [
     "Jane Doe",
+    "Acme Distribution",
     "443-555-0123",
     "jane@example.com",
-    "Warehouse Safety",
-    "",
+    "100 Main Street, Baltimore, MD",
     "Repaint pedestrian lanes and loading zones.",
-    "Contact requested",
+    "VPS-11111111-2222-4333-8444-555555555555",
+    lead.submittedAt,
+    "New",
+    "Google",
+    "https://google.com/",
+    "",
+    "",
+    "",
+    "Mobile",
+    "Pending",
   ]);
-  assert.equal(row[27], "Baltimore, MD");
-  assert.equal(row[7], "VPS-11111111-2222-4333-8444-555555555555");
-  assert.equal(row[22], "Pending");
 });
 
 test("round-trips rows for notification retries", () => {
@@ -108,8 +127,9 @@ test("round-trips rows for notification retries", () => {
 
   assert.equal(restored.leadId, lead.leadId);
   assert.equal(restored.fullName, lead.fullName);
+  assert.equal(restored.companyProperty, lead.companyProperty);
   assert.equal(restored.projectLocation, lead.projectLocation);
-  assert.equal(restored.consent, false);
+  assert.equal(restored.referrer, lead.referrer);
 });
 
 test("emails all six requested fields", () => {
