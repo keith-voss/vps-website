@@ -137,3 +137,15 @@ test("emails all six requested fields", () => {
   assert.equal(sentEmail.to, "keith@example.com");
   assert.equal(sentEmail.replyTo, lead.email);
 });
+
+test("publishes stored status before starting the notification email", () => {
+  const postStart = source.indexOf("function doPost(event)");
+  const postEnd = source.indexOf("function setupLeadSheet()", postStart);
+  const doPostSource = source.slice(postStart, postEnd);
+  const earlyStatus = doPostSource.indexOf("cacheLeadStatus_(lead.submissionId");
+  const emailSend = doPostSource.indexOf("sendLeadEmail_(properties");
+
+  assert.ok(earlyStatus >= 0, "doPost must publish a stored status");
+  assert.ok(emailSend >= 0, "doPost must send the notification email");
+  assert.ok(earlyStatus < emailSend, "stored status must be visible before email delivery begins");
+});

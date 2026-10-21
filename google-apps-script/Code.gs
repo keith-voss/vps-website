@@ -97,6 +97,9 @@ function doPost(event) {
       }
 
       notificationStatus = String(sheet.getRange(rowNumber, NOTIFICATION_COLUMN).getValue() || "");
+      // Confirm durable Sheet persistence before MailApp runs. Email delivery can
+      // take long enough to exhaust the browser's bounded status-polling window.
+      cacheLeadStatus_(lead.submissionId, lead.leadId, notificationStatus || "Pending");
       if (notificationStatus === "Sent") {
         notificationSent = true;
       } else {
