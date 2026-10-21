@@ -116,6 +116,28 @@ function isValidEmailAddress(value: string) {
   ) && labels.at(-1)!.length >= 2;
 }
 
+const COMMON_EMAIL_DOMAIN_TYPOS: Record<string, string> = {
+  "gmail.con": "gmail.com",
+  "gamil.com": "gmail.com",
+  "gmial.com": "gmail.com",
+  "gmail.co": "gmail.com",
+  "yahoo.con": "yahoo.com",
+  "yaho.com": "yahoo.com",
+  "hotmail.con": "hotmail.com",
+  "outlook.con": "outlook.com",
+};
+
+function suggestedEmailAddress(value: string) {
+  const email = value.trim().toLowerCase();
+  const atIndex = email.lastIndexOf("@");
+  if (atIndex <= 0) return "";
+
+  const domain = email.slice(atIndex + 1);
+  const correctedDomain = COMMON_EMAIL_DOMAIN_TYPOS[domain]
+    || (domain.endsWith(".con") ? `${domain.slice(0, -4)}.com` : "");
+  return correctedDomain ? `${email.slice(0, atIndex)}@${correctedDomain}` : "";
+}
+
 function isValidUsPhoneNumber(value: string) {
   let digits = value.replace(/\D/g, "");
   if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
@@ -156,13 +178,18 @@ const EstimateModal = ({ open, onOpenChange }: EstimateModalProps) => {
     const emailInput = form.elements.namedItem("email") as HTMLInputElement;
     const phone = String(formData.get("phone") || "");
     const email = String(formData.get("email") || "");
+    const emailSuggestion = suggestedEmailAddress(email);
 
     phoneInput.setCustomValidity(isValidUsPhoneNumber(phone)
       ? ""
       : "Enter a valid 10-digit U.S. phone number, such as 443-970-1440.");
-    emailInput.setCustomValidity(isValidEmailAddress(email)
-      ? ""
-      : "Enter a valid email address, including the domain, such as name@company.com.");
+    emailInput.setCustomValidity(
+      !isValidEmailAddress(email)
+        ? "Enter a valid email address, including the domain, such as name@company.com."
+        : emailSuggestion
+          ? `That email domain looks mistyped. Did you mean ${emailSuggestion}?`
+          : "",
+    );
 
     if (!phoneInput.checkValidity()) {
       phoneInput.reportValidity();
