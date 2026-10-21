@@ -30,6 +30,7 @@ const HEADERS = [
   "Contacted At",
   "Estimate Status",
   "Notes",
+  "Address",
 ];
 
 const LEAD_ID_COLUMN = HEADERS.indexOf("Lead ID") + 1;
@@ -312,9 +313,9 @@ function validateLead_(lead) {
     "leadId",
     "submittedAt",
     "fullName",
+    "companyProperty",
     "phone",
     "email",
-    "serviceNeeded",
     "projectLocation",
     "projectDescription",
   ];
@@ -325,10 +326,10 @@ function validateLead_(lead) {
     }
   });
 
-  if (lead.consent !== true) throw new Error("Consent is required.");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) throw new Error("Invalid email address.");
   const phoneDigits = lead.phone.replace(/\D/g, "");
   if (phoneDigits.length < 7 || phoneDigits.length > 15) throw new Error("Invalid phone number.");
+  if (lead.projectDescription.length < 10) throw new Error("Brief description must be at least 10 characters.");
 }
 
 function leadToRow_(lead, notificationStatus) {
@@ -337,9 +338,9 @@ function leadToRow_(lead, notificationStatus) {
     safeCell_(lead.phone),
     safeCell_(lead.email),
     safeCell_(lead.serviceNeeded),
-    safeCell_(lead.projectLocation),
+    "",
     safeCell_(lead.projectDescription),
-    lead.consent === true ? "Yes" : "No",
+    "Contact requested",
     safeCell_(lead.leadId),
     safeCell_(lead.submittedAt),
     "New",
@@ -360,6 +361,7 @@ function leadToRow_(lead, notificationStatus) {
     "",
     "",
     "",
+    safeCell_(lead.projectLocation),
   ];
 }
 
@@ -369,7 +371,7 @@ function rowToLead_(row) {
     phone: String(row[1] || ""),
     email: String(row[2] || ""),
     serviceNeeded: String(row[3] || ""),
-    projectLocation: String(row[4] || ""),
+    projectLocation: String(row[27] || row[4] || ""),
     projectDescription: String(row[5] || ""),
     consent: String(row[6] || "") === "Yes",
     leadId: String(row[7] || ""),
@@ -393,21 +395,16 @@ function sendLeadEmail_(properties, lead, sheet) {
   const recipients = properties.getProperty("NOTIFY_EMAILS") || DEFAULT_NOTIFY_EMAILS;
   if (!recipients) throw new Error("NOTIFY_EMAILS is not configured.");
 
-  const subject = "New Voss Estimate Lead — " + lead.fullName + " — " + lead.serviceNeeded;
+  const subject = "New Voss Estimate Lead — " + lead.fullName + " — " + lead.companyProperty;
   const sheetUrl = sheet.getParent().getUrl();
   const plainBody = [
     "A new estimate request was submitted through the Voss website.",
     "",
     "Name: " + lead.fullName,
-    "Company / property: " + (lead.companyProperty || "Not provided"),
+    "Company name: " + lead.companyProperty,
     "Phone: " + lead.phone,
     "Email: " + lead.email,
-    "Service: " + lead.serviceNeeded,
-    "Property type: " + (lead.propertyType || "Not provided"),
-    "Location: " + lead.projectLocation,
-    "Timeline: " + (lead.projectTimeline || "Not provided"),
-    "Preferred contact: " + (lead.preferredContactMethod || "No preference"),
-    "Preferred time: " + (lead.preferredContactTime || "Not provided"),
+    "Address: " + lead.projectLocation,
     "",
     "Project description:",
     lead.projectDescription,
@@ -420,15 +417,10 @@ function sendLeadEmail_(properties, lead, sheet) {
 
   const rows = [
     ["Name", lead.fullName],
-    ["Company / property", lead.companyProperty || "Not provided"],
+    ["Company name", lead.companyProperty],
     ["Phone", lead.phone],
     ["Email", lead.email],
-    ["Service", lead.serviceNeeded],
-    ["Property type", lead.propertyType || "Not provided"],
-    ["Location", lead.projectLocation],
-    ["Timeline", lead.projectTimeline || "Not provided"],
-    ["Preferred contact", lead.preferredContactMethod || "No preference"],
-    ["Preferred time", lead.preferredContactTime || "Not provided"],
+    ["Address", lead.projectLocation],
     ["Source", lead.sourcePage || "Unknown"],
     ["Lead ID", lead.leadId],
   ].map(function (row) {
